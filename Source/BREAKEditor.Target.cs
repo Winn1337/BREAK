@@ -11,5 +11,6 @@ public class BREAKEditorTarget : TargetRules
 		DefaultBuildSettings = BuildSettingsVersion.V5;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_5;
 		ExtraModuleNames.Add("BREAK");
-	}
+        ExtraModuleNames.Add("MyBREAKRocketLauncher");
+    }
 }
