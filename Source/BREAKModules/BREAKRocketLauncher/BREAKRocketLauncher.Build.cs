@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class MyBREAKRocketLauncher : ModuleRules
+public class BREAKRocketLauncher : ModuleRules
 {
-	public MyBREAKRocketLauncher(ReadOnlyTargetRules Target) : base(Target)
+	public BREAKRocketLauncher(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 

@@ -13,7 +13,7 @@
 			]
 		},
 		{
-			"Name": "MyBREAKRocketLauncher",
+			"Name": "BREAKRocketLauncher",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
