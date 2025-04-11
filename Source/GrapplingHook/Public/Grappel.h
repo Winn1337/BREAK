@@ -23,4 +23,14 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+private:
+	UPROPERTY(VisibleAnywhere)
+	class USceneComponent* Root;
+
+	UPROPERTY(VisibleAnywhere)
+	class UStaticMeshComponent* HookMesh;
+
+	UPROPERTY(VisibleAnywhere)
+	class UProjectileMovementComponent* ProjectileMovement;
+
 };
