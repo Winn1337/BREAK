@@ -2,12 +2,12 @@
 
 using UnrealBuildTool;
 
-public class BREAK : ModuleRules
+public class GrapplingHook : ModuleRules
 {
-	public BREAK(ReadOnlyTargetRules Target) : base(Target)
+	public GrapplingHook(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GrapplingHook", "CableComponent" });
-	}
+    }
 }
