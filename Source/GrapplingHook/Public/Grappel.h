@@ -33,4 +33,7 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	class UProjectileMovementComponent* ProjectileMovement;
 
+	UPROPERTY(VisibleAnywhere)
+	class UCableComponent* Cable;
+
 };

@@ -4,6 +4,10 @@
 #include "Grappel.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "CableComponent.h" // <-- Required for UCableComponent
+#include "Kismet/GameplayStatics.h" // <-- For UGameplayStatics::GetPlayerCharacter
+#include "GameFramework/Character.h" // <-- For ACharacter
+#include "Components/CapsuleComponent.h" // <-- For UCapsuleComponent
 
 // Sets default values
 AGrappel::AGrappel()
@@ -28,12 +32,27 @@ AGrappel::AGrappel()
 	ProjectileMovement->InitialSpeed = 2000.f;
 	ProjectileMovement->MaxSpeed = 2000.f;
 	ProjectileMovement->ProjectileGravityScale = 0.f;
+
+	Cable = CreateDefaultSubobject<UCableComponent>(TEXT("Cable"));
+	Cable->SetupAttachment(Root);
+	Cable->bAttachStart = true;
+	Cable->bAttachEnd = true;
 }
 
 // Called when the game starts or when spawned
 void AGrappel::BeginPlay()
 {
 	Super::BeginPlay();
+
+	ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	if (PlayerCharacter)
+	{
+		UCapsuleComponent* Capsule = PlayerCharacter->GetCapsuleComponent();
+		if (Cable && Capsule)
+		{
+			Cable->SetAttachEndTo(PlayerCharacter, FName("CapsuleComponent"));
+		}
+	}
 	
 }
 
