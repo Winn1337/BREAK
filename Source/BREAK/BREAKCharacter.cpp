@@ -103,12 +103,22 @@ void ABREAKCharacter::FireGrapple()
 {
 	if (!GrappleClass) return;
 
+	// Destroy existing grapple if it exists
+	if (IsValid(ActiveGrapple))
+	{
+		ActiveGrapple->Destroy();
+		ActiveGrapple = nullptr;
+	}
+
 	// Get spawn location and direction from the player's camera
 	FVector SpawnLocation = FirstPersonCameraComponent->GetComponentLocation() +
 		FirstPersonCameraComponent->GetForwardVector() * 100.f;
 
 	FRotator SpawnRotation = FirstPersonCameraComponent->GetComponentRotation();
 
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+
 	// Spawn the grappling hook actor
-	GetWorld()->SpawnActor<AGrappel>(GrappleClass, SpawnLocation, SpawnRotation);
+	ActiveGrapple = GetWorld()->SpawnActor<AGrappel>(GrappleClass, SpawnLocation, SpawnRotation, SpawnParams);
 }

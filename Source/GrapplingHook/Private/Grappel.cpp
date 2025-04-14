@@ -69,14 +69,23 @@ void AGrappel::Tick(float DeltaTime)
 
 	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
 	{
-		if (Hit.GetActor() && Hit.GetActor()->ActorHasTag("GrappleSurface"))
+		if (Hit.GetActor())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Grapple attached to surface at %s"), *Hit.ImpactPoint.ToString());
+			if (Hit.GetActor()->ActorHasTag("GrappleSurface"))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Grapple attached to surface at %s"), *Hit.ImpactPoint.ToString());
 
-			ProjectileMovement->StopMovementImmediately();
-			SetActorLocation(Hit.ImpactPoint);
+				ProjectileMovement->StopMovementImmediately();
+				SetActorLocation(Hit.ImpactPoint);
 
-			bHasHit = true;
+				bHasHit = true;
+			}
+			else
+			{
+				// Hit something that's not grappleable
+				UE_LOG(LogTemp, Warning, TEXT("Grapple hit non-grapple surface. Destroying."));
+				Destroy();
+			}
 		}
 	}
 }
