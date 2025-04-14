@@ -103,10 +103,12 @@ void ABREAKCharacter::FireGrapple()
 {
 	if (!GrappleClass) return;
 
+	// Get spawn location and direction from the player's camera
 	FVector SpawnLocation = FirstPersonCameraComponent->GetComponentLocation() +
 		FirstPersonCameraComponent->GetForwardVector() * 100.f;
 
 	FRotator SpawnRotation = FirstPersonCameraComponent->GetComponentRotation();
 
+	// Spawn the grappling hook actor
 	GetWorld()->SpawnActor<AGrappel>(GrappleClass, SpawnLocation, SpawnRotation);
 }
