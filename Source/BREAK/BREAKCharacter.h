@@ -68,6 +68,9 @@ protected:
 	/** Called to fire the grappling hook */
 	void FireGrapple();
 
+	/* Called to release the grapple */
+	void ReleaseGrapple();
+
 protected:
 	// APawn interface
 	virtual void NotifyControllerChanged() override;

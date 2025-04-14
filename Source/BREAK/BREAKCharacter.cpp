@@ -70,6 +70,9 @@ void ABREAKCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 		// Grappling
 		EnhancedInputComponent->BindAction(GrappleAction, ETriggerEvent::Started, this, &ABREAKCharacter::FireGrapple);
+
+		EnhancedInputComponent->BindAction(GrappleAction, ETriggerEvent::Started, this, &ABREAKCharacter::FireGrapple);
+		EnhancedInputComponent->BindAction(GrappleAction, ETriggerEvent::Completed, this, &ABREAKCharacter::ReleaseGrapple);
 	}
 	else
 	{
@@ -121,4 +124,13 @@ void ABREAKCharacter::FireGrapple()
 
 	// Spawn the grappling hook actor
 	ActiveGrapple = GetWorld()->SpawnActor<AGrappel>(GrappleClass, SpawnLocation, SpawnRotation, SpawnParams);
+}
+
+void ABREAKCharacter::ReleaseGrapple()
+{
+	if (IsValid(ActiveGrapple))
+	{
+		ActiveGrapple->Destroy();
+		ActiveGrapple = nullptr;
+	}
 }
