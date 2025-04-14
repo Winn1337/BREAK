@@ -6,6 +6,11 @@
 #include "GameFramework/Actor.h"
 #include "Grappel.generated.h"
 
+class USceneComponent;
+class UStaticMeshComponent;
+class UProjectileMovementComponent;
+class UCableComponent;
+
 UCLASS()
 class GRAPPLINGHOOK_API AGrappel : public AActor
 {
@@ -25,15 +30,16 @@ public:
 
 private:
 	UPROPERTY(VisibleAnywhere)
-	class USceneComponent* Root;
+	USceneComponent* Root;
 
 	UPROPERTY(VisibleAnywhere)
-	class UStaticMeshComponent* HookMesh;
+	UStaticMeshComponent* HookMesh;
 
 	UPROPERTY(VisibleAnywhere)
-	class UProjectileMovementComponent* ProjectileMovement;
+	UProjectileMovementComponent* ProjectileMovement;
 
 	UPROPERTY(VisibleAnywhere)
-	class UCableComponent* Cable;
+	UCableComponent* Cable;
 
+	bool bHasHit;
 };
