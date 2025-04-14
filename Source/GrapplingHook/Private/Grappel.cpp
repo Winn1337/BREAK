@@ -4,39 +4,33 @@
 #include "Grappel.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
-#include "CableComponent.h" // <-- Required for UCableComponent
-#include "Kismet/GameplayStatics.h" // <-- For UGameplayStatics::GetPlayerCharacter
-#include "GameFramework/Character.h" // <-- For ACharacter
-#include "Components/CapsuleComponent.h" // <-- For UCapsuleComponent
+#include "CableComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/Character.h"
+#include "Components/CapsuleComponent.h"
 
 // Sets default values
 AGrappel::AGrappel()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Root component
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 	RootComponent = Root;
 
-	// Hook mesh
 	HookMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HookMesh"));
 	HookMesh->SetupAttachment(Root);
 
-	// Optional: Set a default static mesh if you want in code
-	// static ConstructorHelpers::FObjectFinder<UStaticMesh> HookVisualAsset(TEXT("StaticMesh'/Game/Path/To/Your/Hook.Hook'"));
-	// if (HookVisualAsset.Succeeded()) { HookMesh->SetStaticMesh(HookVisualAsset.Object); }
-
-	// Movement
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 	ProjectileMovement->InitialSpeed = 2000.f;
 	ProjectileMovement->MaxSpeed = 2000.f;
 	ProjectileMovement->ProjectileGravityScale = 0.f;
 
 	Cable = CreateDefaultSubobject<UCableComponent>(TEXT("Cable"));
-	Cable->SetupAttachment(Root);
+	Cable->SetupAttachment(Root); // neutral attachment
 	Cable->bAttachStart = true;
 	Cable->bAttachEnd = true;
+
+	bHasHit = false;
 }
 
 // Called when the game starts or when spawned
@@ -44,16 +38,19 @@ void AGrappel::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-	if (PlayerCharacter)
+	ACharacter* MyPlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	if (MyPlayerCharacter && Cable)
 	{
-		UCapsuleComponent* Capsule = PlayerCharacter->GetCapsuleComponent();
-		if (Cable && Capsule)
-		{
-			Cable->SetAttachEndTo(PlayerCharacter, FName("CapsuleComponent"));
-		}
+		// Attach the cable component to the player’s capsule
+		Cable->AttachToComponent(MyPlayerCharacter->GetCapsuleComponent(), FAttachmentTransformRules::KeepWorldTransform);
+
+		// Ensure it uses the correct ends
+		Cable->bAttachStart = true;
+		Cable->bAttachEnd = true;
+
+		// Optional, just for safety
+		Cable->EndLocation = FVector::ZeroVector;
 	}
-	
 }
 
 // Called every frame
@@ -61,5 +58,26 @@ void AGrappel::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (bHasHit) return;
+
+	FVector Start = GetActorLocation();
+	FVector End = Start + GetActorForwardVector() * 100.f;
+
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
+	{
+		if (Hit.GetActor() && Hit.GetActor()->ActorHasTag("GrappleSurface"))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Grapple attached to surface at %s"), *Hit.ImpactPoint.ToString());
+
+			ProjectileMovement->StopMovementImmediately();
+			SetActorLocation(Hit.ImpactPoint);
+
+			bHasHit = true;
+		}
+	}
 }
 
