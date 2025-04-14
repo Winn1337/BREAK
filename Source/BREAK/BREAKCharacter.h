@@ -79,4 +79,9 @@ public:
 
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+
+private:
+	/** Currently active grapple instance */
+	UPROPERTY()
+	AGrappel* ActiveGrapple;
 };
