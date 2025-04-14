@@ -12,6 +12,7 @@
 #include "Engine/LocalPlayer.h"
 #include "Grappel.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -132,5 +133,33 @@ void ABREAKCharacter::ReleaseGrapple()
 	{
 		ActiveGrapple->Destroy();
 		ActiveGrapple = nullptr;
+	}
+}
+
+void ABREAKCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (IsValid(ActiveGrapple) && ActiveGrapple->IsHooked())
+	{
+		FVector HookLocation = ActiveGrapple->GetHookLocation();
+		FVector ToHook = HookLocation - GetActorLocation();
+
+		float Distance = ToHook.Size();
+		ToHook.Normalize();
+
+		if (Distance > 50.f)
+		{
+			//float PullStrength = 100000.f;
+
+			// Enable physics-like movement
+			if (GetCharacterMovement()->MovementMode != MOVE_Falling)
+			{
+				GetCharacterMovement()->SetMovementMode(MOVE_Falling);
+			}
+
+			GetCharacterMovement()->SetMovementMode(MOVE_Falling);
+			LaunchCharacter(ToHook * 2000.f, true, true);
+		}
 	}
 }

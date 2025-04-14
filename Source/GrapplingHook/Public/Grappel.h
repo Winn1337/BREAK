@@ -27,6 +27,12 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	
+	// Check if hook has attached to a surface
+	bool IsHooked() const { return bHasHit; }
+
+	// Get the location of the hook (for player to pull towards)
+	FVector GetHookLocation() const { return GetActorLocation(); }
 
 private:
 	UPROPERTY(VisibleAnywhere)

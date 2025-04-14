@@ -71,6 +71,9 @@ protected:
 	/* Called to release the grapple */
 	void ReleaseGrapple();
 
+	/** Per-frame logic */
+	virtual void Tick(float DeltaTime) override;
+
 protected:
 	// APawn interface
 	virtual void NotifyControllerChanged() override;
