@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include <GameFramework/ProjectileMovementComponent.h>
-#include <Components/CapsuleComponent.h>
-#include "BREAKModules/BREAKRocketLauncher/Private/ARocketExplosion.h"
 #include "ARocket.generated.h"
+
+class AARocketExplosion;
+class UProjectileMovementComponent;
+class UCapsuleComponent;
 
 UCLASS()
 class BREAKROCKETLAUNCHER_API AARocket : public AActor
@@ -29,6 +30,8 @@ public:
 private:
 
 	// Functions
+	
+	
 
 	// event function for overlap collisions
 	UFUNCTION()

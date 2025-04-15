@@ -46,7 +46,11 @@ void AARocketExplosion::TriggerExplosion()
 	TArray<UPrimitiveComponent*> overlappingComponents;
 	ExplosionRadiusCollider->GetOverlappingComponents(overlappingComponents);
 
-	DrawDebugSphere(GetWorld(), GetActorLocation(), ExplosionRadiusCollider->GetScaledSphereRadius(), 32, FColor::Red, false, 2.0f);
+	if (bShowExplosionRadiusDebug)
+	{
+		DrawDebugSphere(GetWorld(), GetActorLocation(), ExplosionRadiusCollider->GetScaledSphereRadius(), 32, FColor::Red, false, 2.0f);
+	}
+	
 
 	for (UPrimitiveComponent* comp : overlappingComponents)
 	{
@@ -57,24 +61,7 @@ void AARocketExplosion::TriggerExplosion()
 
 		if (ACharacter* character = Cast<ACharacter>(actor))
 		{
-			FVector direction = character->GetActorLocation() - GetActorLocation();
-			float distance = direction.Size();
-			if (distance == 0.0f) continue;
-
-			direction.Normalize();
-
-			float forceMagnitude = FMath::Clamp(ExplosionForce / distance, 0.0f, ExplosionForce);
-
-			// This is the real magic
-			FVector impulse = direction * forceMagnitude;
-
-			// Combine current velocity for momentum stacking
-			FVector finalLaunchVelocity = character->GetVelocity() + impulse;
-
-			UE_LOG(LogTemp, Warning, TEXT("Rocket-jumping character %s with velocity %s"), *character->GetName(), *finalLaunchVelocity.ToString());
-
-			// This launches the character while preserving XY/Z control
-			character->LaunchCharacter(finalLaunchVelocity, true, true);
+			HitPlayer(character);
 
 			continue;
 		}
@@ -82,22 +69,47 @@ void AARocketExplosion::TriggerExplosion()
 		// For physics-simulated objects
 		if (comp->IsSimulatingPhysics())
 		{
-			FVector componentLocation = comp->GetComponentLocation();
-			FVector direction = componentLocation - GetActorLocation();
-			float distance = direction.Size();
-			if (distance == 0.0f) continue;
-
-			direction.Normalize();
-			float forceMagnitude = FMath::Clamp(ExplosionForce / distance, 0.0f, ExplosionForce);
-
-			comp->AddImpulse(direction * forceMagnitude, NAME_None, true);
+			HitObject(comp);
 		}
 	}
+
+	Destroy();
 }
 
-#pragma region Events
+void AARocketExplosion::HitPlayer(ACharacter* character)
+{
+	FVector direction = character->GetActorLocation() - GetActorLocation();
+	float distance = direction.Size();
+	if (distance == 0.0f) return;
 
-#pragma endregion
+	direction.Normalize();
+
+	float forceMagnitude = FMath::Clamp(ExplosionForce / distance, 0.0f, ExplosionForce);
+
+	FVector impulse = direction * forceMagnitude;
+
+	// momentum stacking
+	FVector finalLaunchVelocity = character->GetVelocity() + impulse;
+
+	UE_LOG(LogTemp, Warning, TEXT("Rocket-jumping character %s with velocity %s"), *character->GetName(), *finalLaunchVelocity.ToString());
+
+	character->LaunchCharacter(finalLaunchVelocity, true, true);
+}
+
+void AARocketExplosion::HitObject(UPrimitiveComponent* comp)
+{
+	FVector componentLocation = comp->GetComponentLocation();
+	FVector direction = componentLocation - GetActorLocation();
+	float distance = direction.Size();
+	if (distance == 0.0f) return;
+
+	direction.Normalize();
+	float forceMagnitude = FMath::Clamp(ExplosionForce / distance, 0.0f, ExplosionForce);
+
+	comp->AddImpulse(direction * forceMagnitude, NAME_None, true);
+}
+
+
 
 
 

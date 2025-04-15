@@ -3,6 +3,9 @@
 
 #include "ARocket.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "GameFramework/ProjectileMovementComponent.h"
+#include "ARocketExplosion.h"
 
 // Sets default values
 AARocket::AARocket()

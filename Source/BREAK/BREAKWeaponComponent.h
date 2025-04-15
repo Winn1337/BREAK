@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "BREAKModules/BREAKRocketLauncher/Public/ARocket.h"
+#include "ARocket.h"
 #include "BREAKWeaponComponent.generated.h"
 
 class ABREAKCharacter;
@@ -60,6 +60,12 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	/** The Character holding this weapon*/
+
+	void CanFire();
+
 	ABREAKCharacter* Character;
+
+	bool bCanFire = true;
+	FTimerHandle FireCooldownTimer;
+	static constexpr float FIRE_COOLDOWN = 0.4;
 };

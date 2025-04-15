@@ -23,7 +23,7 @@ UBREAKWeaponComponent::UBREAKWeaponComponent()
 
 void UBREAKWeaponComponent::Fire()
 {
-	if (Character == nullptr || Character->GetController() == nullptr)
+	if (!bCanFire || Character == nullptr || Character->GetController() == nullptr)
 	{
 		return;
 	}
@@ -37,16 +37,43 @@ void UBREAKWeaponComponent::Fire()
 		if (World != nullptr)
 		{
 			APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
-			const FRotator SpawnRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
-			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-			const FVector SpawnLocation = GetOwner()->GetActorLocation() + SpawnRotation.RotateVector(MuzzleOffset);
 	
-			//Set Spawn Collision Handling Override
-			FActorSpawnParameters ActorSpawnParams;
-			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	
-			// Spawn the projectile at the muzzle
-			World->SpawnActor<AARocket>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+			if (DoesSocketExist(FName("Muzzle")))
+			{
+				const FTransform MuzzleTransform = GetSocketTransform(FName("Muzzle"), RTS_World);
+				const FVector MuzzleLocation = MuzzleTransform.GetLocation();
+
+				
+				FVector WorldLocation;
+				FVector WorldDirection;
+				// Get center of screen
+				int32 ViewportSizeX, ViewportSizeY;
+				PlayerController->GetViewportSize(ViewportSizeX, ViewportSizeY);
+				FVector2D ScreenCenter(ViewportSizeX / 2.f, ViewportSizeY / 2.f);
+
+				// Deproject screen center to world
+				if (PlayerController->DeprojectScreenPositionToWorld(ScreenCenter.X, ScreenCenter.Y, WorldLocation, WorldDirection))
+				{
+					// Line trace to get point of impact
+					FVector EndLocation = WorldLocation + (WorldDirection * 10000.f); // Long ray
+
+					// Compute direction to fire
+					FVector FireDirection = (EndLocation - MuzzleLocation).GetSafeNormal();
+					FRotator FireRotation = FireDirection.Rotation();
+
+					// Set spawn params
+					FActorSpawnParameters ActorSpawnParams;
+					ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+					ActorSpawnParams.Owner = GetOwner();
+
+					// Spawn the projectile aimed toward crosshair
+					World->SpawnActor<AARocket>(ProjectileClass, MuzzleLocation, FireRotation, ActorSpawnParams);
+
+					bCanFire = false;
+					World->GetTimerManager().SetTimer(FireCooldownTimer, this, &UBREAKWeaponComponent::CanFire, FIRE_COOLDOWN, false);
+				}
+			}
+			
 		}
 	}
 	
@@ -105,6 +132,11 @@ void UBREAKWeaponComponent::BeginPlay()
 	Super::BeginPlay();
 
 	Character = Cast<ABREAKCharacter>(GetOwner());
+}
+
+void UBREAKWeaponComponent::CanFire()
+{
+	bCanFire = true;
 }
 
 void UBREAKWeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)

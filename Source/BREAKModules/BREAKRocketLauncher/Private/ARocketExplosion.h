@@ -36,6 +36,8 @@ private:
 
 	// Functions
 
+	void HitPlayer(ACharacter* character);
+	void HitObject(UPrimitiveComponent* comp);
 
 	// Components
 
@@ -51,5 +53,8 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Explosion")
 	float ExplosionForce;
+
+	UPROPERTY(EditAnywhere, Category = Debug)
+	bool bShowExplosionRadiusDebug = false;
 
 };
