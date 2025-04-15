@@ -8,6 +8,6 @@ public class BREAKRocketLauncher : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-        PrivateDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine"});
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine"});
 	}
 }

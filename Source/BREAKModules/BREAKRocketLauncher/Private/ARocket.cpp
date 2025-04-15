@@ -28,7 +28,7 @@ AARocket::AARocket()
 	RocketProjectileMovement->bAutoActivate = true;
 	RocketProjectileMovement->InitialSpeed = 50;
 	RocketProjectileMovement->MaxSpeed = 100;
-	RocketProjectileMovement->bRotationFollowsVelocity = true;
+	RocketProjectileMovement->bRotationFollowsVelocity = false;
 	RocketProjectileMovement->bShouldBounce = false;
 	
 	// Member variable instantiations
@@ -55,23 +55,28 @@ void AARocket::Tick(float DeltaTime)
 
 void AARocket::OnCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor && OtherActor != this)
+	if (OtherActor && OtherActor != this && OtherComp)
 	{
-		// Spawn the explosion
-		if (RocketExplosion)
+		
+		if (OtherComp->GetCollisionObjectType() == ECC_Pawn)
 		{
-			FActorSpawnParameters spawnParams;
-			spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			return;
+		}
 
-			/////// FIX THIS, THIS CRASHES THE UNREAL EDITOR
-			AARocketExplosion* Explosion = GetWorld()->SpawnActor<AARocketExplosion>(
-				RocketExplosion,
-				GetActorLocation(),         // explosion position
-				FRotator::ZeroRotator,      // no rotation needed
-				spawnParams
-			);
+		UWorld* const World = GetWorld();
+		if (World != nullptr)
+		{
+			const FVector SpawnLocation = GetActorLocation();
 
-			if (Explosion)
+			//Set Spawn Collision Handling Override
+			FActorSpawnParameters ActorSpawnParams;
+			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+			FRotator spawnRotation = FRotator::ZeroRotator;
+			// Spawn the projectile at the muzzle
+			AARocketExplosion* Explosion = World->SpawnActor<AARocketExplosion>(RocketExplosion, SpawnLocation, spawnRotation, ActorSpawnParams);
+
+			if (Explosion != nullptr)
 			{
 				Explosion->TriggerExplosion();
 			}

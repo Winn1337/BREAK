@@ -31,6 +31,8 @@ void UBREAKWeaponComponent::Fire()
 	// Try and fire a projectile
 	if (ProjectileClass != nullptr)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("ProjectileClass is valid and we are about to spawn a projectile!"));
+
 		UWorld* const World = GetWorld();
 		if (World != nullptr)
 		{
@@ -41,10 +43,10 @@ void UBREAKWeaponComponent::Fire()
 	
 			//Set Spawn Collision Handling Override
 			FActorSpawnParameters ActorSpawnParams;
-			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	
 			// Spawn the projectile at the muzzle
-			World->SpawnActor<ABREAKProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+			World->SpawnActor<AARocket>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
 		}
 	}
 	
@@ -66,10 +68,9 @@ void UBREAKWeaponComponent::Fire()
 	}
 }
 
-bool UBREAKWeaponComponent::AttachWeapon(ABREAKCharacter* TargetCharacter)
+bool UBREAKWeaponComponent::AttachWeapon()
 {
-	Character = TargetCharacter;
-
+	
 	// Check that the character is valid, and has no weapon component yet
 	if (Character == nullptr || Character->GetInstanceComponents().FindItemByClass<UBREAKWeaponComponent>())
 	{
@@ -97,6 +98,13 @@ bool UBREAKWeaponComponent::AttachWeapon(ABREAKCharacter* TargetCharacter)
 	}
 
 	return true;
+}
+
+void UBREAKWeaponComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	Character = Cast<ABREAKCharacter>(GetOwner());
 }
 
 void UBREAKWeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)

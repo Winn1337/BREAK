@@ -10,6 +10,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "Engine/LocalPlayer.h"
+#include "BREAKWeaponComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -35,6 +36,7 @@ ABREAKCharacter::ABREAKCharacter()
 	Mesh1P->CastShadow = false;
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
+	RocketLauncherComponent = CreateDefaultSubobject<UBREAKWeaponComponent>(TEXT("RocketLauncherComponent"));
 }
 
 //////////////////////////////////////////////////////////////////////////// Input

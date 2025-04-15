@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "BREAKModules/BREAKRocketLauncher/Public/ARocket.h"
 #include "BREAKWeaponComponent.generated.h"
 
 class ABREAKCharacter;
@@ -14,9 +15,10 @@ class BREAK_API UBREAKWeaponComponent : public USkeletalMeshComponent
 	GENERATED_BODY()
 
 public:
+
 	/** Projectile class to spawn */
 	UPROPERTY(EditDefaultsOnly, Category=Projectile)
-	TSubclassOf<class ABREAKProjectile> ProjectileClass;
+	TSubclassOf<AARocket> ProjectileClass;
 
 	/** Sound to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
@@ -43,7 +45,7 @@ public:
 
 	/** Attaches the actor to a FirstPersonCharacter */
 	UFUNCTION(BlueprintCallable, Category="Weapon")
-	bool AttachWeapon(ABREAKCharacter* TargetCharacter);
+	bool AttachWeapon();
 
 	/** Make the weapon Fire a Projectile */
 	UFUNCTION(BlueprintCallable, Category="Weapon")
@@ -53,6 +55,9 @@ protected:
 	/** Ends gameplay for this component. */
 	UFUNCTION()
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 
 private:
 	/** The Character holding this weapon*/

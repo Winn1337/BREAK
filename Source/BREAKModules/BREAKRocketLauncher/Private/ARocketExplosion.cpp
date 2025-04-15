@@ -2,6 +2,9 @@
 
 
 #include "ARocketExplosion.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Components/CapsuleComponent.h"
 
 // Sets default values
 AARocketExplosion::AARocketExplosion()
@@ -40,55 +43,59 @@ void AARocketExplosion::Tick(float DeltaTime)
 
 void AARocketExplosion::TriggerExplosion()
 {
-	TArray<AActor*> overlappingActors;
-	ExplosionRadiusCollider->GetOverlappingActors(overlappingActors);
+	TArray<UPrimitiveComponent*> overlappingComponents;
+	ExplosionRadiusCollider->GetOverlappingComponents(overlappingComponents);
 
-	for (AActor* actor : overlappingActors)
+	DrawDebugSphere(GetWorld(), GetActorLocation(), ExplosionRadiusCollider->GetScaledSphereRadius(), 32, FColor::Red, false, 2.0f);
+
+	for (UPrimitiveComponent* comp : overlappingComponents)
 	{
-		if (actor && actor != this)
-		{
-			FVector actorLocation = actor->GetActorLocation();
-			FVector direction = actorLocation - GetActorLocation();
-			float distance = direction.Size();
+		if (!comp || comp == this->GetRootComponent()) continue;
 
-			if (distance == 0) continue; // prevent divide-by-zero
+		AActor* actor = comp->GetOwner();
+		if (!actor || actor == this) continue;
+
+		if (ACharacter* character = Cast<ACharacter>(actor))
+		{
+			FVector direction = character->GetActorLocation() - GetActorLocation();
+			float distance = direction.Size();
+			if (distance == 0.0f) continue;
 
 			direction.Normalize();
 
 			float forceMagnitude = FMath::Clamp(ExplosionForce / distance, 0.0f, ExplosionForce);
 
-			UPrimitiveComponent* primitiveComp = Cast<UPrimitiveComponent>(actor->GetRootComponent());
-			if (primitiveComp && primitiveComp->IsSimulatingPhysics())
-			{
-				primitiveComp->AddImpulse(direction * forceMagnitude, NAME_None, true);
-			}
+			// This is the real magic
+			FVector impulse = direction * forceMagnitude;
+
+			// Combine current velocity for momentum stacking
+			FVector finalLaunchVelocity = character->GetVelocity() + impulse;
+
+			UE_LOG(LogTemp, Warning, TEXT("Rocket-jumping character %s with velocity %s"), *character->GetName(), *finalLaunchVelocity.ToString());
+
+			// This launches the character while preserving XY/Z control
+			character->LaunchCharacter(finalLaunchVelocity, true, true);
+
+			continue;
+		}
+
+		// For physics-simulated objects
+		if (comp->IsSimulatingPhysics())
+		{
+			FVector componentLocation = comp->GetComponentLocation();
+			FVector direction = componentLocation - GetActorLocation();
+			float distance = direction.Size();
+			if (distance == 0.0f) continue;
+
+			direction.Normalize();
+			float forceMagnitude = FMath::Clamp(ExplosionForce / distance, 0.0f, ExplosionForce);
+
+			comp->AddImpulse(direction * forceMagnitude, NAME_None, true);
 		}
 	}
 }
 
 #pragma region Events
-
-void AARocketExplosion::OnCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (OtherActor && OtherActor != this)
-	{
-		FVector otherActorLocation = OtherActor->GetActorLocation();
-
-		FVector directionToExplosionCenter = otherActorLocation - CenterOfExplosion;
-		
-		float distanceFromExplosionCenter = directionToExplosionCenter.Size();
-
-		directionToExplosionCenter.Normalize();
-
-		float forceMagnitude = FMath::Clamp(ExplosionForce / distanceFromExplosionCenter, 0.0, ExplosionForce); // Force magnitude based on distance from explosion center
-
-		UPrimitiveComponent* otherActorPrimitiveComponent = Cast<UPrimitiveComponent>(OtherActor->GetRootComponent());
-		if (otherActorPrimitiveComponent)
-		{
-			otherActorPrimitiveComponent->AddImpulse(-directionToExplosionCenter * forceMagnitude, NAME_None, true);
-		}
-	}
-}
 
 #pragma endregion
 

@@ -6,7 +6,7 @@
 #include "GameFramework/Actor.h"
 #include <GameFramework/ProjectileMovementComponent.h>
 #include <Components/CapsuleComponent.h>
-#include "ARocketExplosion.h"
+#include "BREAKModules/BREAKRocketLauncher/Private/ARocketExplosion.h"
 #include "ARocket.generated.h"
 
 UCLASS()

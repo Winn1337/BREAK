@@ -13,10 +13,11 @@ class UCameraComponent;
 class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
+class UBREAKWeaponComponent;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
-UCLASS(config=Game)
+UCLASS(config=Game, Blueprintable, BlueprintType)
 class ABREAKCharacter : public ACharacter
 {
 	GENERATED_BODY()
@@ -49,6 +50,7 @@ public:
 	ABREAKCharacter();
 
 protected:
+
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
@@ -67,5 +69,7 @@ public:
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = RocketLauncher)
+	UBREAKWeaponComponent* RocketLauncherComponent;
 };
 
