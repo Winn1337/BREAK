@@ -45,6 +45,7 @@ void AARocket::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	SetLifeSpan(ROCKET_TIME_TO_LIVE);
 }
 
 // Called every frame

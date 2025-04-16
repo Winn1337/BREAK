@@ -62,5 +62,5 @@ private:
 
 	// Const 
 
-	static constexpr float ROCKET_TIME_TO_LIVE = 3;
+	static constexpr float ROCKET_TIME_TO_LIVE = 10;
 };
