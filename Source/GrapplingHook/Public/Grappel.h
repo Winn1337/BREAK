@@ -10,6 +10,8 @@ class USceneComponent;
 class UStaticMeshComponent;
 class UProjectileMovementComponent;
 class UCableComponent;
+class ACharacter;
+class UCharacterMovementComponent;
 
 UCLASS()
 class GRAPPLINGHOOK_API AGrappel : public AActor
@@ -23,16 +25,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	
-	// Check if hook has attached to a surface
-	bool IsHooked() const { return bHasHit; }
-
-	// Get the location of the hook (for player to pull towards)
-	FVector GetHookLocation() const { return GetActorLocation(); }
 
 private:
 	UPROPERTY(VisibleAnywhere)
@@ -47,5 +40,22 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UCableComponent* Cable;
 
+	UPROPERTY()
+	ACharacter* PlayerCharacter;
+
+	UPROPERTY()
+	UCharacterMovementComponent* MovementComponent;
+
+	UPROPERTY(EditAnywhere, Category = "Grapple")
+	float PullStrength = 2000.f;
+
+	UPROPERTY(EditAnywhere, Category = "Grapple")
+	float MinDistanceToPull = 50.f;
+
+	UPROPERTY(EditAnywhere, Category = "Grapple")
+	float MaxRopeLength = 1500.f;
+
 	bool bHasHit;
+
+	void HandlePlayerMovement(float DeltaTime);
 };

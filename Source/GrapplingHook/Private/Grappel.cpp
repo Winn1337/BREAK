@@ -7,6 +7,7 @@
 #include "CableComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 
 // Sets default values
@@ -38,18 +39,11 @@ void AGrappel::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ACharacter* MyPlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-	if (MyPlayerCharacter && Cable)
+	PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	if (PlayerCharacter)
 	{
-		// Attach the cable component to the player’s capsule
-		Cable->AttachToComponent(MyPlayerCharacter->GetCapsuleComponent(), FAttachmentTransformRules::KeepWorldTransform);
-
-		// Ensure it uses the correct ends
-		Cable->bAttachStart = true;
-		Cable->bAttachEnd = true;
-
-		// Optional, just for safety
-		Cable->EndLocation = FVector::ZeroVector;
+		Cable->AttachToComponent(PlayerCharacter->GetCapsuleComponent(), FAttachmentTransformRules::KeepWorldTransform);
+		MovementComponent = PlayerCharacter->GetCharacterMovement();
 	}
 }
 
@@ -58,20 +52,18 @@ void AGrappel::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bHasHit) return;
-
-	FVector Start = GetActorLocation();
-	FVector End = Start + GetActorForwardVector() * 100.f;
-
-	FHitResult Hit;
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);
-
-	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
+	if (!bHasHit)
 	{
-		if (Hit.GetActor())
+		FVector Start = GetActorLocation();
+		FVector End = Start + GetActorForwardVector() * 100.f;
+
+		FHitResult Hit;
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+
+		if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
 		{
-			if (Hit.GetActor()->ActorHasTag("GrappleSurface"))
+			if (Hit.GetActor() && Hit.GetActor()->ActorHasTag("GrappleSurface"))
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Grapple attached to surface at %s"), *Hit.ImpactPoint.ToString());
 
@@ -82,11 +74,34 @@ void AGrappel::Tick(float DeltaTime)
 			}
 			else
 			{
-				// Hit something that's not grappleable
 				UE_LOG(LogTemp, Warning, TEXT("Grapple hit non-grapple surface. Destroying."));
 				Destroy();
 			}
 		}
+	}
+	else
+	{
+		HandlePlayerMovement(DeltaTime);
+	}
+}
+
+void AGrappel::HandlePlayerMovement(float DeltaTime)
+{
+	if (!PlayerCharacter || !MovementComponent) return;
+
+	FVector HookLocation = GetActorLocation();
+	FVector ToHook = HookLocation - PlayerCharacter->GetActorLocation();
+	float Distance = ToHook.Size();
+
+	if (Distance > MinDistanceToPull)
+	{
+		if (MovementComponent->MovementMode != MOVE_Falling)
+		{
+			MovementComponent->SetMovementMode(MOVE_Falling);
+		}
+
+		ToHook.Normalize();
+		PlayerCharacter->LaunchCharacter(ToHook * PullStrength * DeltaTime, true, true);
 	}
 }
 
