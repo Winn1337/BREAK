@@ -7,13 +7,10 @@
 		{
 			"Name": "BREAK",
 			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"AdditionalDependencies": [
-				"Engine"
-			]
+			"LoadingPhase": "Default"
 		},
 		{
-			"Name": "BREAKRocketLauncher",
+			"Name": "GrapplingHook",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
