@@ -89,11 +89,11 @@ void AARocketExplosion::HitPlayer(ACharacter* character)
 	FVector impulse = direction * forceMagnitude;
 
 	// momentum stacking
-	FVector finalLaunchVelocity = character->GetVelocity() + impulse;
+	FVector finalLaunchVelocity = impulse;
 
 	UE_LOG(LogTemp, Warning, TEXT("Rocket-jumping character %s with velocity %s"), *character->GetName(), *finalLaunchVelocity.ToString());
 
-	character->LaunchCharacter(finalLaunchVelocity, true, true);
+	character->LaunchCharacter(finalLaunchVelocity, false, false);
 }
 
 void AARocketExplosion::HitObject(UPrimitiveComponent* comp)
