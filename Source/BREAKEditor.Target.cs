@@ -12,5 +12,6 @@ public class BREAKEditorTarget : TargetRules
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_5;
 		ExtraModuleNames.Add("BREAK");
 		ExtraModuleNames.Add("GrapplingHook");
-	}
+        ExtraModuleNames.Add("BREAKRocketLauncher");
+    }
 }
