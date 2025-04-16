@@ -10,9 +10,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "Engine/LocalPlayer.h"
-#include "Grappel.h"
-#include "Kismet/GameplayStatics.h"
-#include "GameFramework/CharacterMovementComponent.h"
+#include "BREAKWeaponComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -23,20 +21,22 @@ ABREAKCharacter::ABREAKCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
-
-	// Create a CameraComponent
+		
+	// Create a CameraComponent	
 	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
 	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
-	FirstPersonCameraComponent->SetRelativeLocation(FVector(-10.f, 0.f, 60.f));
+	FirstPersonCameraComponent->SetRelativeLocation(FVector(-10.f, 0.f, 60.f)); // Position the camera
 	FirstPersonCameraComponent->bUsePawnControlRotation = true;
 
-	// Create a mesh component for 1st person view (arms)
+	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
 	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh1P"));
 	Mesh1P->SetOnlyOwnerSee(true);
 	Mesh1P->SetupAttachment(FirstPersonCameraComponent);
 	Mesh1P->bCastDynamicShadow = false;
 	Mesh1P->CastShadow = false;
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
+
+	RocketLauncherComponent = CreateDefaultSubobject<UBREAKWeaponComponent>(TEXT("RocketLauncherComponent"));
 }
 
 //////////////////////////////////////////////////////////////////////////// Input
@@ -56,7 +56,8 @@ void ABREAKCharacter::NotifyControllerChanged()
 }
 
 void ABREAKCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
+{	
+	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		// Jumping
@@ -68,25 +69,22 @@ void ABREAKCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ABREAKCharacter::Look);
-
-		// Grappling
-		EnhancedInputComponent->BindAction(GrappleAction, ETriggerEvent::Started, this, &ABREAKCharacter::FireGrapple);
-
-		EnhancedInputComponent->BindAction(GrappleAction, ETriggerEvent::Started, this, &ABREAKCharacter::FireGrapple);
-		EnhancedInputComponent->BindAction(GrappleAction, ETriggerEvent::Completed, this, &ABREAKCharacter::ReleaseGrapple);
 	}
 	else
 	{
-		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input Component!"), *GetNameSafe(this));
+		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input Component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
 }
 
+
 void ABREAKCharacter::Move(const FInputActionValue& Value)
 {
+	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
 	if (Controller != nullptr)
 	{
+		// add movement 
 		AddMovementInput(GetActorForwardVector(), MovementVector.Y);
 		AddMovementInput(GetActorRightVector(), MovementVector.X);
 	}
@@ -94,72 +92,13 @@ void ABREAKCharacter::Move(const FInputActionValue& Value)
 
 void ABREAKCharacter::Look(const FInputActionValue& Value)
 {
+	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
 	if (Controller != nullptr)
 	{
+		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
-	}
-}
-
-void ABREAKCharacter::FireGrapple()
-{
-	if (!GrappleClass) return;
-
-	// Destroy existing grapple if it exists
-	if (IsValid(ActiveGrapple))
-	{
-		ActiveGrapple->Destroy();
-		ActiveGrapple = nullptr;
-	}
-
-	// Get spawn location and direction from the player's camera
-	FVector SpawnLocation = FirstPersonCameraComponent->GetComponentLocation() +
-		FirstPersonCameraComponent->GetForwardVector() * 100.f;
-
-	FRotator SpawnRotation = FirstPersonCameraComponent->GetComponentRotation();
-
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = this;
-
-	// Spawn the grappling hook actor
-	ActiveGrapple = GetWorld()->SpawnActor<AGrappel>(GrappleClass, SpawnLocation, SpawnRotation, SpawnParams);
-}
-
-void ABREAKCharacter::ReleaseGrapple()
-{
-	if (IsValid(ActiveGrapple))
-	{
-		ActiveGrapple->Destroy();
-		ActiveGrapple = nullptr;
-	}
-}
-
-void ABREAKCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	if (IsValid(ActiveGrapple) && ActiveGrapple->IsHooked())
-	{
-		FVector HookLocation = ActiveGrapple->GetHookLocation();
-		FVector ToHook = HookLocation - GetActorLocation();
-
-		float Distance = ToHook.Size();
-		ToHook.Normalize();
-
-		if (Distance > 50.f)
-		{
-			//float PullStrength = 100000.f;
-
-			// Enable physics-like movement
-			if (GetCharacterMovement()->MovementMode != MOVE_Falling)
-			{
-				GetCharacterMovement()->SetMovementMode(MOVE_Falling);
-			}
-
-			GetCharacterMovement()->SetMovementMode(MOVE_Falling);
-			LaunchCharacter(ToHook * 2000.f, true, true);
-		}
 	}
 }
