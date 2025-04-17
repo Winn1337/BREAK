@@ -11,6 +11,7 @@
 #include "InputActionValue.h"
 #include "Engine/LocalPlayer.h"
 #include "BREAKWeaponComponent.h"
+#include "GrappleComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -37,6 +38,7 @@ ABREAKCharacter::ABREAKCharacter()
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
 	RocketLauncherComponent = CreateDefaultSubobject<UBREAKWeaponComponent>(TEXT("RocketLauncherComponent"));
+	GrappleComponent = CreateDefaultSubobject<UGrappleComponent>(TEXT("GrappleComponent"));
 }
 
 //////////////////////////////////////////////////////////////////////////// Input
@@ -69,6 +71,10 @@ void ABREAKCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ABREAKCharacter::Look);
+
+		// Grappling
+		EnhancedInputComponent->BindAction(GrappleAction, ETriggerEvent::Started, this, &ABREAKCharacter::StartGrapple);
+		EnhancedInputComponent->BindAction(GrappleAction, ETriggerEvent::Completed, this, &ABREAKCharacter::StopGrapple);
 	}
 	else
 	{
@@ -100,5 +106,21 @@ void ABREAKCharacter::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void ABREAKCharacter::StartGrapple()
+{
+	if (GrappleComponent)
+	{
+		GrappleComponent->FireGrapple();
+	}
+}
+
+void ABREAKCharacter::StopGrapple()
+{
+	if (GrappleComponent)
+	{
+		GrappleComponent->ReleaseGrapple();
 	}
 }
