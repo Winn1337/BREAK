@@ -14,6 +14,7 @@ class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
 class UBREAKWeaponComponent;
+class UGrappleComponent;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
@@ -45,6 +46,10 @@ class ABREAKCharacter : public ACharacter
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
+
+	/** Grapple Input Action **/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* GrappleAction;
 	
 public:
 	ABREAKCharacter();
@@ -56,6 +61,10 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
+
+	/** Called for Grapple input **/
+	void StartGrapple();
+	void StopGrapple();
 
 protected:
 	// APawn interface
@@ -71,5 +80,8 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = RocketLauncher)
 	UBREAKWeaponComponent* RocketLauncherComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Grapple)
+	UGrappleComponent* GrappleComponent;
 };
 
