@@ -13,5 +13,6 @@ public class BREAKEditorTarget : TargetRules
 		ExtraModuleNames.Add("BREAK");
 		ExtraModuleNames.Add("GrapplingHook");
         ExtraModuleNames.Add("BREAKRocketLauncher");
+        ExtraModuleNames.Add("BREAKKatana");
     }
 }
