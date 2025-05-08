@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "GameFrameWork/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Grappel.h"
 
 UGrappleComponent::UGrappleComponent()
 {
@@ -14,61 +15,72 @@ UGrappleComponent::UGrappleComponent()
 
 void UGrappleComponent::FireGrapple()
 {
-	bIsGrappleHooked = false;
-	
-	if (GrappleClass && !ActiveGrapple)
-	{
-		AActor* Owner = GetOwner();
-		if (!Owner) return;
+    bIsGrappleHooked = false;
 
-		// Get player controller & camera location/direction
-		APlayerController* PC = Cast<APlayerController>(Owner->GetInstigatorController());
-		if (!PC) return;
+    if (GrappleClass && !ActiveGrapple)
+    {
+        AActor* Owner = GetOwner();
+        if (!Owner) return;
 
-		FVector CameraLocation;
-		FRotator CameraRotation;
-		PC->GetPlayerViewPoint(CameraLocation, CameraRotation);
+        APlayerController* PC = Cast<APlayerController>(Owner->GetInstigatorController());
+        if (!PC) return;
 
-		FVector TraceStart = CameraLocation;
-		FVector TraceEnd = TraceStart + (CameraRotation.Vector() * 10000.f);
+        FVector CameraLocation;
+        FRotator CameraRotation;
+        PC->GetPlayerViewPoint(CameraLocation, CameraRotation);
 
-		// Raycast to find hit point
-		FHitResult Hit;
-		FCollisionQueryParams TraceParams;
-		TraceParams.AddIgnoredActor(Owner);
+        FVector TraceStart = CameraLocation;
+        FVector TraceEnd = TraceStart + (CameraRotation.Vector() * 100000.f);
 
-		FVector TargetLocation = TraceEnd;
+        FHitResult Hit;
+        FCollisionQueryParams TraceParams;
+        TraceParams.AddIgnoredActor(Owner);
 
-		// Raycast to find Grappleable surface
-		if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_Visibility, TraceParams))
-		{
-			//TargetLocation = Hit.ImpactPoint;
+        FVector TargetLocation = TraceEnd;
 
-			if (Hit.GetActor() && Hit.GetActor()->ActorHasTag("GrappleSurface"))
-			{
-				TargetLocation = Hit.ImpactPoint;
-				bIsGrappleHooked = true;
-				UE_LOG(LogTemp, Warning, TEXT("Hit GrappleSurface at %s"), *TargetLocation.ToString());
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Hit non-grapple surface: %s"), *Hit.GetActor()->GetName());
-			}
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("No hit — firing grapple straight ahead"));
-		}
+        if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_Visibility, TraceParams))
+        {
+            if (Hit.GetActor() && Hit.GetActor()->ActorHasTag("GrappleSurface"))
+            {
+                TargetLocation = Hit.ImpactPoint;
+                bIsGrappleHooked = true;
 
-		// Direction to the target point
-		FVector SpawnLocation = Owner->GetActorLocation() + Owner->GetActorForwardVector() * 100.f;
-		FRotator SpawnRotation = (TargetLocation - SpawnLocation).Rotation();
+                UE_LOG(LogTemp, Warning, TEXT("Hit GrappleSurface at %s"), *TargetLocation.ToString());
 
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = Owner;
+                ACharacter* OwnerCharacter = Cast<ACharacter>(Owner);
+                if (OwnerCharacter && OwnerCharacter->GetCharacterMovement()->MovementMode != MOVE_Falling)
+                {
+                    OwnerCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Falling);
+                }
 
-		ActiveGrapple = GetWorld()->SpawnActor<AActor>(GrappleClass, SpawnLocation, SpawnRotation, SpawnParams);
-	}
+                // Spawn from player's location, facing the target
+                FVector SpawnLocation = Owner->GetActorLocation();
+                FRotator SpawnRotation = (TargetLocation - SpawnLocation).Rotation();
+
+                FActorSpawnParameters SpawnParams;
+                SpawnParams.Owner = Owner;
+
+                // Cast to AGrappel so we can call SetTarget()
+                AGrappel* GrappleActor = Cast<AGrappel>(GetWorld()->SpawnActor<AActor>(
+                    GrappleClass, SpawnLocation, SpawnRotation, SpawnParams));
+
+                if (GrappleActor)
+                {
+                    GrappleActor->SetTarget(TargetLocation);
+                }
+
+                ActiveGrapple = GrappleActor;
+            }
+            else
+            {
+                UE_LOG(LogTemp, Warning, TEXT("Hit non-grapple surface: %s"), *Hit.GetActor()->GetName());
+            }
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("No hit — firing grapple straight ahead"));
+        }
+    }
 }
 
 void UGrappleComponent::ReleaseGrapple()
@@ -101,10 +113,10 @@ void UGrappleComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 	ToHook.Normalize();
 
 	// Set movement mode if needed
-	if (OwnerCharacter->GetCharacterMovement()->MovementMode != MOVE_Falling)
+	/*if (OwnerCharacter->GetCharacterMovement()->MovementMode != MOVE_Falling)
 	{
 		OwnerCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Falling);
-	}
+	}*/
 
 	// Reel player in
 	float PullSpeed = 3000.f;

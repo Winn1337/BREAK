@@ -22,6 +22,8 @@ public:
 	// Sets default values for this actor's properties
 	AGrappel();
 
+	void SetTarget(const FVector& Target);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -58,5 +60,8 @@ private:
 
 	bool bHasHit;
 
-	void HandlePlayerMovement(float DeltaTime);
+	//void HandlePlayerMovement(float DeltaTime);
+
+	FVector TargetLocation;
+	bool bHasTarget = false;
 };
