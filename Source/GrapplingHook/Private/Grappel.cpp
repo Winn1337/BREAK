@@ -52,56 +52,50 @@ void AGrappel::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (!bHasHit)
+	if (!bHasTarget)
+		return;
+
+	FVector Direction = (TargetLocation - GetActorLocation()).GetSafeNormal();
+	float Distance = FVector::Dist(GetActorLocation(), TargetLocation);
+
+	float Speed = 12000.f * DeltaTime;
+
+	if (Distance <= Speed)
 	{
-		FVector Start = GetActorLocation();
-		FVector End = Start + GetActorForwardVector() * 100.f;
-
-		FHitResult Hit;
-		FCollisionQueryParams Params;
-		Params.AddIgnoredActor(this);
-
-		if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
-		{
-			if (Hit.GetActor() && Hit.GetActor()->ActorHasTag("GrappleSurface"))
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Grapple attached to surface at %s"), *Hit.ImpactPoint.ToString());
-
-				ProjectileMovement->StopMovementImmediately();
-				SetActorLocation(Hit.ImpactPoint);
-
-				bHasHit = true;
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Grapple hit non-grapple surface. Destroying."));
-				Destroy();
-			}
-		}
+		SetActorLocation(TargetLocation);
+		ProjectileMovement->StopMovementImmediately();
+		bHasTarget = false;
+		// Optionally: fire event to signal 'arrived'
 	}
 	else
 	{
-		HandlePlayerMovement(DeltaTime);
+		SetActorLocation(GetActorLocation() + Direction * Speed);
 	}
 }
 
-void AGrappel::HandlePlayerMovement(float DeltaTime)
+void AGrappel::SetTarget(const FVector& NewTarget)
 {
-	if (!PlayerCharacter || !MovementComponent) return;
-
-	FVector HookLocation = GetActorLocation();
-	FVector ToHook = HookLocation - PlayerCharacter->GetActorLocation();
-	float Distance = ToHook.Size();
-
-	if (Distance > MinDistanceToPull)
-	{
-		if (MovementComponent->MovementMode != MOVE_Falling)
-		{
-			MovementComponent->SetMovementMode(MOVE_Falling);
-		}
-
-		ToHook.Normalize();
-		PlayerCharacter->LaunchCharacter(ToHook * PullStrength * DeltaTime, true, true);
-	}
+	TargetLocation = NewTarget;
+	bHasTarget = true;
 }
+
+//void AGrappel::HandlePlayerMovement(float DeltaTime)
+//{
+//	if (!PlayerCharacter || !MovementComponent) return;
+//
+//	FVector HookLocation = GetActorLocation();
+//	FVector ToHook = HookLocation - PlayerCharacter->GetActorLocation();
+//	float Distance = ToHook.Size();
+//
+//	if (Distance > MinDistanceToPull)
+//	{
+//		if (MovementComponent->MovementMode != MOVE_Falling)
+//		{
+//			MovementComponent->SetMovementMode(MOVE_Falling);
+//		}
+//
+//		ToHook.Normalize();
+//		PlayerCharacter->LaunchCharacter(ToHook * PullStrength * DeltaTime, true, true);
+//	}
+//}
 
