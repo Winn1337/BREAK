@@ -15,6 +15,7 @@ class UInputMappingContext;
 struct FInputActionValue;
 class UBREAKWeaponComponent;
 class UGrappleComponent;
+class UUKatanaComponent;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
@@ -50,6 +51,7 @@ class ABREAKCharacter : public ACharacter
 	/** Grapple Input Action **/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* GrappleAction;
+
 	
 public:
 	ABREAKCharacter();
@@ -81,7 +83,14 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = RocketLauncher)
 	UBREAKWeaponComponent* RocketLauncherComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Katana)
+	UUKatanaComponent* KatanaComponent;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Grapple)
 	UGrappleComponent* GrappleComponent;
+
+	/** AnimMontage to play each time we swing the katana */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	UAnimMontage* SwingKatanaAnimation;
 };
 

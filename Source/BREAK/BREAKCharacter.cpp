@@ -12,6 +12,7 @@
 #include "Engine/LocalPlayer.h"
 #include "BREAKWeaponComponent.h"
 #include "GrappleComponent.h"
+#include "UKatanaComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -39,6 +40,7 @@ ABREAKCharacter::ABREAKCharacter()
 
 	RocketLauncherComponent = CreateDefaultSubobject<UBREAKWeaponComponent>(TEXT("RocketLauncherComponent"));
 	GrappleComponent = CreateDefaultSubobject<UGrappleComponent>(TEXT("GrappleComponent"));
+	KatanaComponent = CreateDefaultSubobject<UUKatanaComponent>(TEXT("KatanaComponent"));
 }
 
 //////////////////////////////////////////////////////////////////////////// Input
@@ -124,3 +126,4 @@ void ABREAKCharacter::StopGrapple()
 		GrappleComponent->ReleaseGrapple();
 	}
 }
+
